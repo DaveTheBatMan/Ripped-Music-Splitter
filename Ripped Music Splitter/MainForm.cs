@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Configuration;
+using System.Collections.Specialized;
 
 namespace Ripped_Music_Splitter {
 
@@ -50,11 +52,75 @@ namespace Ripped_Music_Splitter {
          }
       }
 
+      static bool bReadSetting(string strKey, ref string strValue) {
+         // https://docs.microsoft.com/en-us/dotnet/api/system.configuration.configurationmanager.appsettings?view=net-5.0
+         bool bResult = false;
+         string strResult = "";
+         try {
+            strResult = ConfigurationManager.AppSettings.Get(strKey);
+            if (strResult == null) {
+               strResult = "No value found";
+            }
+            else {
+               strValue = strResult;
+               bResult = true;
+            }
+         }
+         catch (ConfigurationErrorsException) {
+            // Console.WriteLine("Error reading app settings");
+         }
+         return bResult;
+      }
+
+      static void vAddUpdateAppSettings(string strKey, string strValue) {
+         // https://docs.microsoft.com/en-us/dotnet/api/system.configuration.configurationmanager.appsettings?view=net-5.0
+         try {
+            Configuration cConfigFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            KeyValueConfigurationCollection kvcAllSettings = cConfigFile.AppSettings.Settings;
+            if (kvcAllSettings[strKey] == null) {
+               kvcAllSettings.Add(strKey, strValue);
+            }
+            else {
+               kvcAllSettings[strKey].Value = strValue;
+            }
+            cConfigFile.Save(ConfigurationSaveMode.Modified);
+            ConfigurationManager.RefreshSection(cConfigFile.AppSettings.SectionInformation.Name);
+         }
+         catch (ConfigurationErrorsException) {
+            //Console.WriteLine("Error writing app nvcAllSettings");
+         }
+      }
+
       public frmRippedMusicSplitter() {
          InitializeComponent();
 
          txtbxBaseSourceDir.Text = strBaseSourceDir;
          txtbxBaseTargetDir.Text = strBaseTargetDir;
+
+         string strResult = "";
+         bool bResult;
+         // Load the current value of the key "txtbxBaseSourceDir".
+         bResult = bReadSetting("txtbxBaseSourceDir", ref strResult);
+         // If it was found okay, then store it in the control.
+         if (bResult == true) {
+            txtbxBaseSourceDir.Text = strResult;
+         }
+         // Ooops, the key wasn't found; store it for later use.
+         else {
+            vAddUpdateAppSettings("txtbxBaseSourceDir", strBaseSourceDir);
+         }
+
+         // Load the current value of the key "txtbxBaseTargetDir".
+         bResult = bReadSetting("txtbxBaseTargetDir", ref strResult);
+         // If it was found okay, then store it in the control.
+         if (bResult == true) {
+            txtbxBaseTargetDir.Text = strResult;
+         }
+         // Ooops, the key wasn't found; store it for later use.
+         else {
+            vAddUpdateAppSettings("txtbxBaseTargetDir", strBaseTargetDir);
+         }
+
          bValidateSourceAndTargetDirs();
 
          rbCopyOrMoveMove.Checked = true;
@@ -232,6 +298,12 @@ namespace Ripped_Music_Splitter {
       private void btnGo_Click(object sender, EventArgs e) {
          // Entry here can (should?) only be possible once the Analysis has been successfully
          // completed, resulting in a fully populated lMusicGroupAndAlbums List.
+
+         // Since we're about to start the "Go!" work, save the current paths for later use;
+         // we could save them AFTER everything is processed, but we want the paths saved
+         // NOW in case something happens during the processing.
+         vAddUpdateAppSettings("txtbxBaseSourceDir", txtbxBaseSourceDir.Text);
+         vAddUpdateAppSettings("txtbxBaseTargetDir", txtbxBaseTargetDir.Text);
 
          string strTargetDirGroup = "";
          rtbMessagesToUser.Text = "";
