@@ -18,9 +18,13 @@ namespace Ripped_Music_Splitter {
       private static string strBaseTargetDir = @"D:\zSplitterTestTarget";
       private static List<MusicGroupAndAlbums> lMusicGroupAndAlbums;
       private static string strLogFilename = "Ripped Music Splitter [Log].txt";
+      private bool bProcessFilesFLAC = true;
+      private bool bProcessFilesmp3 = true;
+      private bool bProcessFileswav = true;
 
-      private void bValidateSourceAndTargetDirs() {
-         if (Directory.Exists(txtbxBaseSourceDir.Text)) {
+      private void vValidateSourceAndTargetDirsAndProcessFilesCBs() {
+         bool btxtbxBaseSourceDirExists = Directory.Exists(txtbxBaseSourceDir.Text);
+         if (btxtbxBaseSourceDirExists == true) {
             btnAnalyzeBaseSourceDir.Enabled = true;
             txtbxBaseSourceDir.BackColor = Color.White;
             txtbxBaseSourceDir.ForeColor = Color.Blue;
@@ -35,7 +39,8 @@ namespace Ripped_Music_Splitter {
             txtbxBaseSourceDir.ReadOnly = true;
          }
 
-         if (Directory.Exists(txtbxBaseTargetDir.Text)) {
+         bool btxtbxBaseTargetDirExists = Directory.Exists(txtbxBaseTargetDir.Text);
+         if (btxtbxBaseTargetDirExists == true) {
             txtbxBaseTargetDir.BackColor = Color.White;
             txtbxBaseTargetDir.ForeColor = Color.Blue;
             txtbxBaseTargetDir.Font = new Font(txtbxBaseTargetDir.Font, FontStyle.Regular);
@@ -47,9 +52,14 @@ namespace Ripped_Music_Splitter {
             txtbxBaseTargetDir.Font = new Font(txtbxBaseTargetDir.Font, FontStyle.Bold ^ FontStyle.Italic);
             txtbxBaseTargetDir.ReadOnly = true;
          }
-         if (txtbxBaseSourceDir.Text.Substring(0, 1) != txtbxBaseTargetDir.Text.Substring(0, 1)) {
-            btnGo.Enabled = false;
-         }
+
+         bool bSourceTargetDrivesAreSame = txtbxBaseSourceDir.Text.Substring(0, 1) == txtbxBaseTargetDir.Text.Substring(0, 1);
+
+         // The btnGo button needs to be Enabled (or Disabled); Enable only when:
+         // * Both SourceDir and TargetDir are valid
+         // * The SourceDir and TargetDir are both on the same drive
+         // * At least one of the process-File-type checkboxes is selected.
+         btnGo.Enabled = (btxtbxBaseSourceDirExists && btxtbxBaseTargetDirExists) && bSourceTargetDrivesAreSame && (bProcessFilesFLAC || bProcessFilesmp3 || bProcessFileswav);
       }
 
       static bool bReadSetting(string strKey, ref string strValue) {
@@ -92,6 +102,12 @@ namespace Ripped_Music_Splitter {
       }
 
       public frmRippedMusicSplitter() {
+         // Originally, the values of both txtbxBaseSourceDir and txtbxBaseTargetDir were blank;
+         // but, since the addition of the TextChanged event, their contents are validated
+         // upon the inital .Text value set calls (when the previous settins are retrieved).
+         // Therefore, set their initial values (in the designer) to SOMETHING, even if
+         // they're not valid directories -- just anything that's non-null.
+
          InitializeComponent();
 
          txtbxBaseSourceDir.Text = strBaseSourceDir;
@@ -121,8 +137,44 @@ namespace Ripped_Music_Splitter {
             vAddUpdateAppSettings("txtbxBaseTargetDir", strBaseTargetDir);
          }
 
-         bValidateSourceAndTargetDirs();
+         // Load the current value of the key "bProcessFilesFLAC".
+         bResult = bReadSetting("bProcessFilesFLAC", ref strResult);
+         // If it was found okay, then store it in the control.
+         if (bResult == true) {
+            cbProcessFilesFLAC.Checked = (strResult == "true");
+            bProcessFilesFLAC = cbProcessFilesFLAC.Checked;
+         }
+         // Ooops, the key wasn't found; store it for later use.
+         else {
+            vAddUpdateAppSettings("bProcessFilesFLAC", cbProcessFilesFLAC.Checked ? "true" : "false");
+         }
 
+         // Load the current value of the key "bProcessFilesmp3".
+         bResult = bReadSetting("bProcessFilesmp3", ref strResult);
+         // If it was found okay, then store it in the control.
+         if (bResult == true) {
+            cbProcessFilesmp3.Checked = (strResult == "true");
+            bProcessFilesmp3 = cbProcessFilesmp3.Checked;
+         }
+         // Ooops, the key wasn't found; store it for later use.
+         else {
+            vAddUpdateAppSettings("bProcessFilesmp3", cbProcessFilesmp3.Checked ? "true" : "false");
+         }
+
+         // Load the current value of the key "bProcessFileswav".
+         bResult = bReadSetting("bProcessFileswav", ref strResult);
+         // If it was found okay, then store it in the control.
+         if (bResult == true) {
+            cbProcessFileswav.Checked = (strResult == "true");
+            bProcessFileswav = cbProcessFileswav.Checked;
+         }
+         // Ooops, the key wasn't found; store it for later use.
+         else {
+            vAddUpdateAppSettings("bProcessFileswav", cbProcessFileswav.Checked ? "true" : "false");
+         }
+
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
+         
          rbCopyOrMoveMove.Checked = true;
          rbCopyOrMoveCopy.Checked = false;
          cbVerifyFiles.Checked = false;
@@ -152,7 +204,7 @@ namespace Ripped_Music_Splitter {
             txtbxBaseSourceDir.Text = folderBrowserDialog1.SelectedPath;
          }
 
-         bValidateSourceAndTargetDirs();
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
       }
 
       private void btnGetBaseTargetDir_Click(object sender, EventArgs e) {
@@ -161,7 +213,7 @@ namespace Ripped_Music_Splitter {
             txtbxBaseTargetDir.Text = folderBrowserDialog1.SelectedPath;
          }
 
-         bValidateSourceAndTargetDirs();
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
       }
 
       private void btnAnalyzeBaseSourceDir_Click(object sender, EventArgs e) {
@@ -257,7 +309,7 @@ namespace Ripped_Music_Splitter {
          return bReturnVal;
       }
 
-      private bool bMoveAllAlbumFilesOfType(string strSourceDirectory, string strTargetDirectory, string strOfType) {
+      private bool bMoveAllAlbumFilesOfTypeAndCopyjpgs(string strSourceDirectory, string strTargetDirectory, string strOfType) {
 
          bool bAllFilesMoved = false;
          Font fFontReg = new Font(rtbPreviewBaseTargetDir.Font, FontStyle.Regular);
@@ -324,51 +376,65 @@ namespace Ripped_Music_Splitter {
             }
 
             // For each album:
-            // * Move the *.flac files and copy the .jpg files
+            // * Move the *.flac files & copy the .jpg files, then verify the # of files
             // * Move the *.mp3 files and copy the .jpg files
-            // * Move the *.wav files and copy the .jpg files
+            // * Move the *.wav files and copy the .jpg files\
+            string[] straTargetSongListOfType;
+            string[] straTargetSongListOfjpg;
+            bool bMovedNumberOfFilesMatchFLAC, bMovedNumberOfFilesMatchmp3, bMovedNumberOfFilesMatchwav;
+            bMovedNumberOfFilesMatchFLAC = bMovedNumberOfFilesMatchmp3 = bMovedNumberOfFilesMatchwav = false;
             foreach (Album olAlbum in oMusicGroupAndAlbums.lAlbums) {
                if (olAlbum.bIsAlbumValid == true) {
-                  // Move all of the FLAC files
-                  bool bAlbumFilesAllMovedFLAC = false;
-                  string strTargetDirAlbumFLAC = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [FLAC]";
-                  bAlbumFilesAllMovedFLAC = bMoveAllAlbumFilesOfType(olAlbum.strAlbumDirectory, strTargetDirAlbumFLAC, "*.flac");
+                  // If FLAC files are selected to be processed, then:
+                  // * Move all of the FLAC files and copy the jpg files
+                  // * Verify that the # files at the target is the same as the # at the source
+                  if (bProcessFilesFLAC == true) {
+                     bool bAlbumFilesAllMovedFLAC = false;
+                     string strTargetDirAlbumFLAC = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [FLAC]";
+                     bAlbumFilesAllMovedFLAC = bMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbumFLAC, "*.flac");
+                     // Verify files by file count(s):
+                     // * #SourceFLAC + #Sourcejpg == #TargetFLAC + #Targetjpg
+                     straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbumFLAC, "*.flac");
+                     straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbumFLAC, "*.jpg");
+                     bMovedNumberOfFilesMatchFLAC = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfFLAC) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
+                  }
 
-                  // Move all of the mp3 files
-                  bool bAlbumFilesAllMovedmp3 = false;
-                  string strTargetDirAlbummp3 = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [320kbps mp3]";
-                  bAlbumFilesAllMovedmp3 = bMoveAllAlbumFilesOfType(olAlbum.strAlbumDirectory, strTargetDirAlbummp3, "*.mp3");
+                  // If mp3 files are selected to be processed, then:
+                  // * Move all of the mp3 files and copy the jpg files
+                  // * Verify that the # files at the target is the same as the # at the source
+                  if (bProcessFilesmp3 == true) {
+                     bool bAlbumFilesAllMovedmp3 = false;
+                     string strTargetDirAlbummp3 = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [320kbps mp3]";
+                     bAlbumFilesAllMovedmp3 = bMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbummp3, "*.mp3");
+                     // Verify files by file count(s):
+                     // * #Sourcemp3 + #Sourcejpg == #Targetmp3 + #Targetjpg
+                     straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbummp3, "*.mp3");
+                     straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbummp3, "*.jpg");
+                     bMovedNumberOfFilesMatchmp3 = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfmp3) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
+                  }
 
-                  // Move all of the wav files
-                  bool bAlbumFilesAllMovedwav = false;
-                  string strTargetDirAlbumwav = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [wav]";
-                  bAlbumFilesAllMovedwav = bMoveAllAlbumFilesOfType(olAlbum.strAlbumDirectory, strTargetDirAlbumwav, "*.wav");
+                  // If wav files are selected to be processed, then:
+                  // * Move all of the wav files and copy the jpg files
+                  // * Verify that the # files at the target is the same as the # at the source
+                  if (bProcessFileswav == true) {
+                     bool bAlbumFilesAllMovedwav = false;
+                     string strTargetDirAlbumwav = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [wav]";
+                     bAlbumFilesAllMovedwav = bMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbumwav, "*.wav");
+                     // Verify files by file count(s):
+                     // * #Sourcewav + #Sourcejpg == #Targetwav + #Targetjpg
+                     straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbumwav, "*.wav");
+                     straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbumwav, "*.jpg");
+                     bMovedNumberOfFilesMatchwav = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfwav) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
+                  }
 
-                  // Verify files by file count(s):
-                  // * If #SourceFLAC + #Sourcejpg == #TargetFLAC + #Targetjpg
-                  // AND
-                  // * If #Sourcemp3 + #Sourcejpg == #Targetmp3 + #Targetjpg
-                  // AND
-                  // * If #Sourcewav + #Sourcejpg == #Targetwav + #Targetjpg
-                  // THEN all files moved okay, so:
-                  // * Delete original .jpg
+                  // If all process-file-types are selected, and all files have been moved / copied, then
+                  // do the file-and-directory clean-up. We don't need to test for the three different
+                  // process-file-types -- the bool bMovedNumberOfFilesMatch flags will tell us what we
+                  // need to know, since they all start as false and only become true if their
+                  // corresponding file-type is successfully processed. If they're all true and all
+                  // files have been moved / copied, then:
+                  // * Delete original .jpg files
                   // * Delete SourceAlbumDir
-                  string[] straTargetSongListOfType;
-                  string[] straTargetSongListOfjpg;
-
-                  straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbumFLAC, "*.flac");
-                  straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbumFLAC, "*.jpg");
-                  bool bMovedNumberOfFilesMatchFLAC = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfFLAC) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
-
-                  straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbummp3, "*.mp3");
-                  straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbummp3, "*.jpg");
-                  bool bMovedNumberOfFilesMatchmp3 = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfmp3) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
-
-                  straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbumwav, "*.wav");
-                  straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbumwav, "*.jpg");
-                  bool bMovedNumberOfFilesMatchwav = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfwav) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
-
-                  // If the number of all files match, then delete the original .jpg files.
                   if (bMovedNumberOfFilesMatchFLAC && bMovedNumberOfFilesMatchmp3 && bMovedNumberOfFilesMatchwav) {
                      straTargetSongListOfjpg = Directory.GetFiles(olAlbum.strAlbumDirectory, "*.jpg");
                      foreach (string strFilename in straTargetSongListOfjpg) {
@@ -417,6 +483,47 @@ namespace Ripped_Music_Splitter {
             }
             finally { }
          }
+      }
+
+      private void cbProcessFilesFLAC_CheckedChanged(object sender, EventArgs e) {
+         bProcessFilesFLAC = cbProcessFilesFLAC.Checked;
+         // Save the checkbox setting for later use.
+         vAddUpdateAppSettings("bProcessFilesFLAC", cbProcessFilesFLAC.Checked ? "true" : "false");
+         // The setting for the ProcessFilesFLAC checkbox has changed, so re-verify
+         // if btnGo should be enabled.
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
+      }
+
+      private void cbProcessFilesmp3_CheckedChanged(object sender, EventArgs e) {
+         bProcessFilesmp3 = cbProcessFilesmp3.Checked;
+         // Save the checkbox setting for later use.
+         vAddUpdateAppSettings("bProcessFilesmp3", cbProcessFilesmp3.Checked ? "true" : "false");
+         // The setting for the ProcessFilesmp3 checkbox has changed, so re-verify
+         // if btnGo should be enabled.
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
+      }
+
+      private void cbProcessFileswav_CheckedChanged(object sender, EventArgs e) {
+         bProcessFileswav = cbProcessFileswav.Checked;
+         // Save the checkbox setting for later use.
+         vAddUpdateAppSettings("bProcessFileswav", cbProcessFileswav.Checked ? "true" : "false");
+         // The setting for the ProcessFileswav checkbox has changed, so re-verify
+         // if btnGo should be enabled.
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
+      }
+
+      private void txtbxBaseSourceDir_TextChanged(object sender, EventArgs e) {
+         // Allow the user to enter whatever they want (including a paste from
+         // the clipboard), but be sure to validate if it's valid (along with
+         // everything else).
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
+      }
+
+      private void txtbxBaseTargetDir_TextChanged(object sender, EventArgs e) {
+         // Allow the user to enter whatever they want (including a paste from
+         // the clipboard), but be sure to validate if it's valid (along with
+         // everything else).
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
       }
    }
 

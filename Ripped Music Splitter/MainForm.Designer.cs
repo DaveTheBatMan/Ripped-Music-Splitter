@@ -47,6 +47,11 @@
          this.rtbMessagesToUser = new System.Windows.Forms.RichTextBox();
          this.rtbPreviewBaseTargetDir = new System.Windows.Forms.RichTextBox();
          this.cbLogOperationsToFile = new System.Windows.Forms.CheckBox();
+         this.txtbxTypesOfFiles = new System.Windows.Forms.TextBox();
+         this.cbProcessFilesFLAC = new System.Windows.Forms.CheckBox();
+         this.cbProcessFilesmp3 = new System.Windows.Forms.CheckBox();
+         this.cbProcessFileswav = new System.Windows.Forms.CheckBox();
+         this.lblOnlyProcessFilesOfType = new System.Windows.Forms.Label();
          this.SuspendLayout();
          // 
          // lblRippedMusicSplitterTitle
@@ -62,14 +67,14 @@
          // 
          this.rtbRippedMusicSplitterIntroText.Location = new System.Drawing.Point(22, 34);
          this.rtbRippedMusicSplitterIntroText.Name = "rtbRippedMusicSplitterIntroText";
-         this.rtbRippedMusicSplitterIntroText.Size = new System.Drawing.Size(698, 157);
+         this.rtbRippedMusicSplitterIntroText.Size = new System.Drawing.Size(698, 178);
          this.rtbRippedMusicSplitterIntroText.TabIndex = 1;
          this.rtbRippedMusicSplitterIntroText.Text = resources.GetString("rtbRippedMusicSplitterIntroText.Text");
          // 
          // lblBaseSourceDir
          // 
          this.lblBaseSourceDir.AutoSize = true;
-         this.lblBaseSourceDir.Location = new System.Drawing.Point(19, 212);
+         this.lblBaseSourceDir.Location = new System.Drawing.Point(19, 222);
          this.lblBaseSourceDir.Name = "lblBaseSourceDir";
          this.lblBaseSourceDir.Size = new System.Drawing.Size(113, 13);
          this.lblBaseSourceDir.TabIndex = 2;
@@ -78,7 +83,7 @@
          // lblBaseTargetDir
          // 
          this.lblBaseTargetDir.AutoSize = true;
-         this.lblBaseTargetDir.Location = new System.Drawing.Point(377, 212);
+         this.lblBaseTargetDir.Location = new System.Drawing.Point(377, 222);
          this.lblBaseTargetDir.Name = "lblBaseTargetDir";
          this.lblBaseTargetDir.Size = new System.Drawing.Size(110, 13);
          this.lblBaseTargetDir.TabIndex = 3;
@@ -86,21 +91,25 @@
          // 
          // txtbxBaseSourceDir
          // 
-         this.txtbxBaseSourceDir.Location = new System.Drawing.Point(23, 234);
+         this.txtbxBaseSourceDir.Location = new System.Drawing.Point(23, 244);
          this.txtbxBaseSourceDir.Name = "txtbxBaseSourceDir";
          this.txtbxBaseSourceDir.Size = new System.Drawing.Size(326, 20);
          this.txtbxBaseSourceDir.TabIndex = 4;
+         this.txtbxBaseSourceDir.Text = "txtbxBaseSourceDir";
+         this.txtbxBaseSourceDir.TextChanged += new System.EventHandler(this.txtbxBaseSourceDir_TextChanged);
          // 
          // txtbxBaseTargetDir
          // 
-         this.txtbxBaseTargetDir.Location = new System.Drawing.Point(380, 233);
+         this.txtbxBaseTargetDir.Location = new System.Drawing.Point(380, 243);
          this.txtbxBaseTargetDir.Name = "txtbxBaseTargetDir";
          this.txtbxBaseTargetDir.Size = new System.Drawing.Size(326, 20);
          this.txtbxBaseTargetDir.TabIndex = 5;
+         this.txtbxBaseTargetDir.Text = "txtbxBaseTargetDir";
+         this.txtbxBaseTargetDir.TextChanged += new System.EventHandler(this.txtbxBaseTargetDir_TextChanged);
          // 
          // btnGetBaseSourceDir
          // 
-         this.btnGetBaseSourceDir.Location = new System.Drawing.Point(352, 234);
+         this.btnGetBaseSourceDir.Location = new System.Drawing.Point(352, 244);
          this.btnGetBaseSourceDir.Name = "btnGetBaseSourceDir";
          this.btnGetBaseSourceDir.Size = new System.Drawing.Size(11, 20);
          this.btnGetBaseSourceDir.TabIndex = 6;
@@ -110,7 +119,7 @@
          // 
          // btnGetBaseTargetDir
          // 
-         this.btnGetBaseTargetDir.Location = new System.Drawing.Point(709, 233);
+         this.btnGetBaseTargetDir.Location = new System.Drawing.Point(709, 243);
          this.btnGetBaseTargetDir.Name = "btnGetBaseTargetDir";
          this.btnGetBaseTargetDir.Size = new System.Drawing.Size(11, 20);
          this.btnGetBaseTargetDir.TabIndex = 7;
@@ -121,7 +130,7 @@
          // btnAnalyzeBaseSourceDir
          // 
          this.btnAnalyzeBaseSourceDir.Enabled = false;
-         this.btnAnalyzeBaseSourceDir.Location = new System.Drawing.Point(294, 272);
+         this.btnAnalyzeBaseSourceDir.Location = new System.Drawing.Point(294, 282);
          this.btnAnalyzeBaseSourceDir.Name = "btnAnalyzeBaseSourceDir";
          this.btnAnalyzeBaseSourceDir.Size = new System.Drawing.Size(69, 24);
          this.btnAnalyzeBaseSourceDir.TabIndex = 8;
@@ -131,7 +140,7 @@
          // 
          // rtbAnalysisBaseSourceDir
          // 
-         this.rtbAnalysisBaseSourceDir.Location = new System.Drawing.Point(25, 315);
+         this.rtbAnalysisBaseSourceDir.Location = new System.Drawing.Point(25, 325);
          this.rtbAnalysisBaseSourceDir.Name = "rtbAnalysisBaseSourceDir";
          this.rtbAnalysisBaseSourceDir.Size = new System.Drawing.Size(338, 77);
          this.rtbAnalysisBaseSourceDir.TabIndex = 9;
@@ -143,7 +152,7 @@
          this.rbCopyOrMoveCopy.AutoSize = true;
          this.rbCopyOrMoveCopy.Enabled = false;
          this.rbCopyOrMoveCopy.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-         this.rbCopyOrMoveCopy.Location = new System.Drawing.Point(23, 267);
+         this.rbCopyOrMoveCopy.Location = new System.Drawing.Point(23, 277);
          this.rbCopyOrMoveCopy.Name = "rbCopyOrMoveCopy";
          this.rbCopyOrMoveCopy.Size = new System.Drawing.Size(70, 17);
          this.rbCopyOrMoveCopy.TabIndex = 10;
@@ -154,7 +163,7 @@
          // rbCopyOrMoveMove
          // 
          this.rbCopyOrMoveMove.AutoSize = true;
-         this.rbCopyOrMoveMove.Location = new System.Drawing.Point(23, 283);
+         this.rbCopyOrMoveMove.Location = new System.Drawing.Point(23, 293);
          this.rbCopyOrMoveMove.Name = "rbCopyOrMoveMove";
          this.rbCopyOrMoveMove.Size = new System.Drawing.Size(73, 17);
          this.rbCopyOrMoveMove.TabIndex = 11;
@@ -167,7 +176,7 @@
          this.cbVerifyFiles.AutoSize = true;
          this.cbVerifyFiles.Enabled = false;
          this.cbVerifyFiles.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-         this.cbVerifyFiles.Location = new System.Drawing.Point(380, 267);
+         this.cbVerifyFiles.Location = new System.Drawing.Point(380, 277);
          this.cbVerifyFiles.Name = "cbVerifyFiles";
          this.cbVerifyFiles.Size = new System.Drawing.Size(162, 17);
          this.cbVerifyFiles.TabIndex = 12;
@@ -178,7 +187,7 @@
          // 
          this.cbForceCopyMoveSameDrive.AutoSize = true;
          this.cbForceCopyMoveSameDrive.Enabled = false;
-         this.cbForceCopyMoveSameDrive.Location = new System.Drawing.Point(380, 283);
+         this.cbForceCopyMoveSameDrive.Location = new System.Drawing.Point(380, 293);
          this.cbForceCopyMoveSameDrive.Name = "cbForceCopyMoveSameDrive";
          this.cbForceCopyMoveSameDrive.Size = new System.Drawing.Size(217, 17);
          this.cbForceCopyMoveSameDrive.TabIndex = 13;
@@ -189,7 +198,7 @@
          // btnGo
          // 
          this.btnGo.Enabled = false;
-         this.btnGo.Location = new System.Drawing.Point(651, 272);
+         this.btnGo.Location = new System.Drawing.Point(651, 282);
          this.btnGo.Name = "btnGo";
          this.btnGo.Size = new System.Drawing.Size(69, 24);
          this.btnGo.TabIndex = 14;
@@ -199,7 +208,7 @@
          // 
          // rtbMessagesToUser
          // 
-         this.rtbMessagesToUser.Location = new System.Drawing.Point(23, 418);
+         this.rtbMessagesToUser.Location = new System.Drawing.Point(23, 448);
          this.rtbMessagesToUser.Name = "rtbMessagesToUser";
          this.rtbMessagesToUser.Size = new System.Drawing.Size(698, 46);
          this.rtbMessagesToUser.TabIndex = 15;
@@ -208,7 +217,7 @@
          // 
          // rtbPreviewBaseTargetDir
          // 
-         this.rtbPreviewBaseTargetDir.Location = new System.Drawing.Point(383, 315);
+         this.rtbPreviewBaseTargetDir.Location = new System.Drawing.Point(383, 325);
          this.rtbPreviewBaseTargetDir.Name = "rtbPreviewBaseTargetDir";
          this.rtbPreviewBaseTargetDir.Size = new System.Drawing.Size(338, 77);
          this.rtbPreviewBaseTargetDir.TabIndex = 16;
@@ -220,18 +229,80 @@
          this.cbLogOperationsToFile.AutoSize = true;
          this.cbLogOperationsToFile.Checked = true;
          this.cbLogOperationsToFile.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.cbLogOperationsToFile.Location = new System.Drawing.Point(133, 283);
+         this.cbLogOperationsToFile.Location = new System.Drawing.Point(133, 293);
          this.cbLogOperationsToFile.Name = "cbLogOperationsToFile";
          this.cbLogOperationsToFile.Size = new System.Drawing.Size(130, 17);
          this.cbLogOperationsToFile.TabIndex = 17;
          this.cbLogOperationsToFile.Text = "Log operations to file?";
          this.cbLogOperationsToFile.UseVisualStyleBackColor = true;
          // 
+         // txtbxTypesOfFiles
+         // 
+         this.txtbxTypesOfFiles.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+         this.txtbxTypesOfFiles.Enabled = false;
+         this.txtbxTypesOfFiles.Location = new System.Drawing.Point(23, 410);
+         this.txtbxTypesOfFiles.Multiline = true;
+         this.txtbxTypesOfFiles.Name = "txtbxTypesOfFiles";
+         this.txtbxTypesOfFiles.Size = new System.Drawing.Size(340, 30);
+         this.txtbxTypesOfFiles.TabIndex = 26;
+         // 
+         // cbProcessFilesFLAC
+         // 
+         this.cbProcessFilesFLAC.AutoSize = true;
+         this.cbProcessFilesFLAC.Checked = true;
+         this.cbProcessFilesFLAC.CheckState = System.Windows.Forms.CheckState.Checked;
+         this.cbProcessFilesFLAC.Location = new System.Drawing.Point(181, 417);
+         this.cbProcessFilesFLAC.Name = "cbProcessFilesFLAC";
+         this.cbProcessFilesFLAC.Size = new System.Drawing.Size(52, 17);
+         this.cbProcessFilesFLAC.TabIndex = 18;
+         this.cbProcessFilesFLAC.Text = "FLAC";
+         this.cbProcessFilesFLAC.UseVisualStyleBackColor = true;
+         this.cbProcessFilesFLAC.CheckedChanged += new System.EventHandler(this.cbProcessFilesFLAC_CheckedChanged);
+         // 
+         // cbProcessFilesmp3
+         // 
+         this.cbProcessFilesmp3.AutoSize = true;
+         this.cbProcessFilesmp3.Checked = true;
+         this.cbProcessFilesmp3.CheckState = System.Windows.Forms.CheckState.Checked;
+         this.cbProcessFilesmp3.Location = new System.Drawing.Point(253, 417);
+         this.cbProcessFilesmp3.Name = "cbProcessFilesmp3";
+         this.cbProcessFilesmp3.Size = new System.Drawing.Size(46, 17);
+         this.cbProcessFilesmp3.TabIndex = 19;
+         this.cbProcessFilesmp3.Text = "mp3";
+         this.cbProcessFilesmp3.UseVisualStyleBackColor = true;
+         this.cbProcessFilesmp3.CheckedChanged += new System.EventHandler(this.cbProcessFilesmp3_CheckedChanged);
+         // 
+         // cbProcessFileswav
+         // 
+         this.cbProcessFileswav.AutoSize = true;
+         this.cbProcessFileswav.Checked = true;
+         this.cbProcessFileswav.CheckState = System.Windows.Forms.CheckState.Checked;
+         this.cbProcessFileswav.Location = new System.Drawing.Point(316, 417);
+         this.cbProcessFileswav.Name = "cbProcessFileswav";
+         this.cbProcessFileswav.Size = new System.Drawing.Size(46, 17);
+         this.cbProcessFileswav.TabIndex = 20;
+         this.cbProcessFileswav.Text = "wav";
+         this.cbProcessFileswav.UseVisualStyleBackColor = true;
+         this.cbProcessFileswav.CheckedChanged += new System.EventHandler(this.cbProcessFileswav_CheckedChanged);
+         // 
+         // lblOnlyProcessFilesOfType
+         // 
+         this.lblOnlyProcessFilesOfType.AutoSize = true;
+         this.lblOnlyProcessFilesOfType.Location = new System.Drawing.Point(30, 419);
+         this.lblOnlyProcessFilesOfType.Name = "lblOnlyProcessFilesOfType";
+         this.lblOnlyProcessFilesOfType.Size = new System.Drawing.Size(127, 13);
+         this.lblOnlyProcessFilesOfType.TabIndex = 21;
+         this.lblOnlyProcessFilesOfType.Text = "Only process files of type:";
+         // 
          // frmRippedMusicSplitter
          // 
          this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(743, 488);
+         this.ClientSize = new System.Drawing.Size(743, 502);
+         this.Controls.Add(this.lblOnlyProcessFilesOfType);
+         this.Controls.Add(this.cbProcessFileswav);
+         this.Controls.Add(this.cbProcessFilesmp3);
+         this.Controls.Add(this.cbProcessFilesFLAC);
          this.Controls.Add(this.cbLogOperationsToFile);
          this.Controls.Add(this.rtbPreviewBaseTargetDir);
          this.Controls.Add(this.rtbMessagesToUser);
@@ -250,6 +321,7 @@
          this.Controls.Add(this.lblBaseSourceDir);
          this.Controls.Add(this.rtbRippedMusicSplitterIntroText);
          this.Controls.Add(this.lblRippedMusicSplitterTitle);
+         this.Controls.Add(this.txtbxTypesOfFiles);
          this.Name = "frmRippedMusicSplitter";
          this.Text = "Ripped Music Splitter";
          this.ResumeLayout(false);
@@ -278,6 +350,11 @@
       private System.Windows.Forms.RichTextBox rtbMessagesToUser;
       private System.Windows.Forms.RichTextBox rtbPreviewBaseTargetDir;
       private System.Windows.Forms.CheckBox cbLogOperationsToFile;
+      private System.Windows.Forms.TextBox txtbxTypesOfFiles;
+      private System.Windows.Forms.CheckBox cbProcessFilesFLAC;
+      private System.Windows.Forms.CheckBox cbProcessFilesmp3;
+      private System.Windows.Forms.CheckBox cbProcessFileswav;
+      private System.Windows.Forms.Label lblOnlyProcessFilesOfType;
    }
 }
 
