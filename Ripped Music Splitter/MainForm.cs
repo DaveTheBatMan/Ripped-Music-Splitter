@@ -23,6 +23,10 @@ namespace Ripped_Music_Splitter {
       private bool bProcessFileswav = true;
 
       private void vValidateSourceAndTargetDirsAndProcessFilesCBs() {
+         // Assume that "Go" is disabled until all tests verify that it should be enabled
+         // (at the bottom of this method).
+         btnGo.Enabled = false;
+
          bool btxtbxBaseSourceDirExists = Directory.Exists(txtbxBaseSourceDir.Text);
          if (btxtbxBaseSourceDirExists == true) {
             btnAnalyzeBaseSourceDir.Enabled = true;
@@ -47,19 +51,32 @@ namespace Ripped_Music_Splitter {
             txtbxBaseTargetDir.ReadOnly = false;
          }
          else {
-            txtbxBaseTargetDir.BackColor = Color.Gray;
+            // The background color was originally gray, but tthat's very difficult to read.
+            // txtbxBaseTargetDir.BackColor = Color.Gray;
+            txtbxBaseTargetDir.BackColor = Color.White;
             txtbxBaseTargetDir.ForeColor = Color.Red;
             txtbxBaseTargetDir.Font = new Font(txtbxBaseTargetDir.Font, FontStyle.Bold ^ FontStyle.Italic);
             txtbxBaseTargetDir.ReadOnly = true;
          }
 
+         // Move will only be allowed when all three of the files types have been selected,
+         // so force 'Copy' if any of the three have been unchecked.
+         if (!bProcessFilesFLAC || !bProcessFilesmp3 || !bProcessFileswav) {
+            rbCopyOrMoveMove.Checked = false;
+            rbCopyOrMoveCopy.Checked = true;
+         }
+
          bool bSourceTargetDrivesAreSame = txtbxBaseSourceDir.Text.Substring(0, 1) == txtbxBaseTargetDir.Text.Substring(0, 1);
 
          // The btnGo button needs to be Enabled (or Disabled); Enable only when:
-         // * Both SourceDir and TargetDir are valid
-         // * The SourceDir and TargetDir are both on the same drive
-         // * At least one of the process-File-type checkboxes is selected.
-         btnGo.Enabled = (btxtbxBaseSourceDirExists && btxtbxBaseTargetDirExists) && bSourceTargetDrivesAreSame && (bProcessFilesFLAC || bProcessFilesmp3 || bProcessFileswav);
+         // * Both SourceDir and TargetDir are valid *and*
+         // * The SourceDir and TargetDir are both on the same drive *and*
+         // * At least one of the process-File-type checkboxes is selected *and*
+         // * "Analyze" has been done (as determined that rtbAnalysisBaseSourceDir.Text.Length > 0)
+         btnGo.Enabled = (btxtbxBaseSourceDirExists && btxtbxBaseTargetDirExists) &&
+                         bSourceTargetDrivesAreSame &&
+                         (bProcessFilesFLAC || bProcessFilesmp3 || bProcessFileswav) &&
+                         (rtbAnalysisBaseSourceDir.Text.Length > 0);
       }
 
       static bool bReadSetting(string strKey, ref string strValue) {
@@ -266,11 +283,29 @@ namespace Ripped_Music_Splitter {
       }
 
       private void rbCopyOrMoveCopy_CheckedChanged(object sender, EventArgs e) {
-         rbCopyOrMoveMove.Checked = false;
+         // According to the documentation, adding radio buttons directly to a form
+         // causes them to act as if they're in a 'group' (where the group is
+         // the form), which means that selecting one will automatically
+         // deselect the other. So, there's nothing here, but we allow for 
+         // stuff to be added, later.
+         // Old code that deselects the other radio button.
+         // rbCopyOrMoveMove.Checked = false;
+         // Since we're changing settings, verify that everything (newly) selected
+         // is okay.
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
       }
 
       private void rbCopyOrMoveMove_CheckedChanged(object sender, EventArgs e) {
-         rbCopyOrMoveCopy.Checked = false;
+         // According to the documentation, adding radio buttons directly to a form
+         // causes them to act as if they're in a 'group' (where the group is
+         // the form), which means that selecting one will automatically
+         // deselect the other. So, there's nothing here, but we allow for 
+         // stuff to be added, later.
+         // Old code that deselects the other radio button.
+         // rbCopyOrMoveCopy.Checked = false;
+         // Since we're changing settings, verify that everything (newly) selected
+         // is okay.
+         vValidateSourceAndTargetDirsAndProcessFilesCBs();
       }
 
       private void cbForceCopyMoveSameDrive_CheckedChanged(object sender, EventArgs e) {
@@ -309,7 +344,7 @@ namespace Ripped_Music_Splitter {
          return bReturnVal;
       }
 
-      private bool bMoveAllAlbumFilesOfTypeAndCopyjpgs(string strSourceDirectory, string strTargetDirectory, string strOfType) {
+      private bool bCopyOrMoveAllAlbumFilesOfTypeAndCopyjpgs(string strSourceDirectory, string strTargetDirectory, string strOfType) {
 
          bool bAllFilesMoved = false;
          Font fFontReg = new Font(rtbPreviewBaseTargetDir.Font, FontStyle.Regular);
@@ -321,11 +356,22 @@ namespace Ripped_Music_Splitter {
             rtbMessagesToUser.AppendText("*    GroupAlbum created: " + strTargetDirectory + Environment.NewLine, Color.Blue, fFontReg, cbLogOperationsToFile.Checked, strLogFilename);
             foreach (string strSourceFilePathSong in Directory.GetFiles(strSourceDirectory, strOfType)) {
                try {
-                  File.Move(strSourceFilePathSong, strTargetDirectory + '\\' + Path.GetFileName(strSourceFilePathSong));
-                  rtbMessagesToUser.AppendText("*    GroupAlbumSong moved: " + Path.GetFileName(strSourceFilePathSong) + Environment.NewLine, Color.Blue, fFontReg, cbLogOperationsToFile.Checked, strLogFilename);
+                  if (rbCopyOrMoveMove.Checked == true) {
+                     File.Move(strSourceFilePathSong, strTargetDirectory + '\\' + Path.GetFileName(strSourceFilePathSong));
+                     rtbMessagesToUser.AppendText("*    GroupAlbumSong moved: " + Path.GetFileName(strSourceFilePathSong) + Environment.NewLine, Color.Blue, fFontReg, cbLogOperationsToFile.Checked, strLogFilename);
+                  }
+                  else if (rbCopyOrMoveCopy.Checked == true) {
+                     File.Copy(strSourceFilePathSong, strTargetDirectory + '\\' + Path.GetFileName(strSourceFilePathSong));
+                     rtbMessagesToUser.AppendText("*    GroupAlbumSong copied: " + Path.GetFileName(strSourceFilePathSong) + Environment.NewLine, Color.Blue, fFontReg, cbLogOperationsToFile.Checked, strLogFilename);
+                  }
                }
                catch (Exception eException) {
-                  rtbMessagesToUser.AppendText("*** Error moving song file from " + strSourceFilePathSong + " to " + strTargetDirectory + '\\' + Path.GetFileName(strSourceFilePathSong) + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
+                  if (rbCopyOrMoveMove.Checked == true) {
+                     rtbMessagesToUser.AppendText("*** Error moving song file from " + strSourceFilePathSong + " to " + strTargetDirectory + '\\' + Path.GetFileName(strSourceFilePathSong) + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
+                  }
+                  else if (rbCopyOrMoveCopy.Checked == true) {
+                     rtbMessagesToUser.AppendText("*** Error copying song file from " + strSourceFilePathSong + " to " + strTargetDirectory + '\\' + Path.GetFileName(strSourceFilePathSong) + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
+                  }
                   bAllFilesMoved = false;
                }
             }
@@ -376,66 +422,68 @@ namespace Ripped_Music_Splitter {
             }
 
             // For each album:
-            // * Move the *.flac files & copy the .jpg files, then verify the # of files
-            // * Move the *.mp3 files and copy the .jpg files
-            // * Move the *.wav files and copy the .jpg files\
+            // * Move-or-copy the *.flac files & copy the .jpg files, then verify the # of files
+            // * Move-or-copy the *.mp3 files & copy the .jpg files, then verify the # of files
+            // * Move-or-copy the *.wav files & copy the .jpg files, then verify the # of files
             string[] straTargetSongListOfType;
             string[] straTargetSongListOfjpg;
-            bool bMovedNumberOfFilesMatchFLAC, bMovedNumberOfFilesMatchmp3, bMovedNumberOfFilesMatchwav;
-            bMovedNumberOfFilesMatchFLAC = bMovedNumberOfFilesMatchmp3 = bMovedNumberOfFilesMatchwav = false;
+            bool bCopiedOrMovedNumberOfFilesMatchFLAC, bCopiedOrMovedNumberOfFilesMatchmp3, bCopiedOrMovedNumberOfFilesMatchwav;
+            bCopiedOrMovedNumberOfFilesMatchFLAC = bCopiedOrMovedNumberOfFilesMatchmp3 = bCopiedOrMovedNumberOfFilesMatchwav = false;
             foreach (Album olAlbum in oMusicGroupAndAlbums.lAlbums) {
                if (olAlbum.bIsAlbumValid == true) {
                   // If FLAC files are selected to be processed, then:
-                  // * Move all of the FLAC files and copy the jpg files
+                  // * Move-or-copy all of the FLAC files and copy the jpg files
                   // * Verify that the # files at the target is the same as the # at the source
                   if (bProcessFilesFLAC == true) {
                      bool bAlbumFilesAllMovedFLAC = false;
                      string strTargetDirAlbumFLAC = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [FLAC]";
-                     bAlbumFilesAllMovedFLAC = bMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbumFLAC, "*.flac");
+                     bAlbumFilesAllMovedFLAC = bCopyOrMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbumFLAC, "*.flac");
                      // Verify files by file count(s):
                      // * #SourceFLAC + #Sourcejpg == #TargetFLAC + #Targetjpg
                      straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbumFLAC, "*.flac");
                      straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbumFLAC, "*.jpg");
-                     bMovedNumberOfFilesMatchFLAC = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfFLAC) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
+                     bCopiedOrMovedNumberOfFilesMatchFLAC = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfFLAC) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
                   }
 
                   // If mp3 files are selected to be processed, then:
-                  // * Move all of the mp3 files and copy the jpg files
+                  // * Move-or-copy all of the mp3 files and copy the jpg files
                   // * Verify that the # files at the target is the same as the # at the source
                   if (bProcessFilesmp3 == true) {
                      bool bAlbumFilesAllMovedmp3 = false;
                      string strTargetDirAlbummp3 = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [320kbps mp3]";
-                     bAlbumFilesAllMovedmp3 = bMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbummp3, "*.mp3");
+                     bAlbumFilesAllMovedmp3 = bCopyOrMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbummp3, "*.mp3");
                      // Verify files by file count(s):
                      // * #Sourcemp3 + #Sourcejpg == #Targetmp3 + #Targetjpg
                      straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbummp3, "*.mp3");
                      straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbummp3, "*.jpg");
-                     bMovedNumberOfFilesMatchmp3 = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfmp3) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
+                     bCopiedOrMovedNumberOfFilesMatchmp3 = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfmp3) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
                   }
 
                   // If wav files are selected to be processed, then:
-                  // * Move all of the wav files and copy the jpg files
+                  // * Move-or-copy all of the wav files and copy the jpg files
                   // * Verify that the # files at the target is the same as the # at the source
                   if (bProcessFileswav == true) {
                      bool bAlbumFilesAllMovedwav = false;
                      string strTargetDirAlbumwav = strTargetDirGroup + "\\" + olAlbum.strAlbumName + " [wav]";
-                     bAlbumFilesAllMovedwav = bMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbumwav, "*.wav");
+                     bAlbumFilesAllMovedwav = bCopyOrMoveAllAlbumFilesOfTypeAndCopyjpgs(olAlbum.strAlbumDirectory, strTargetDirAlbumwav, "*.wav");
                      // Verify files by file count(s):
                      // * #Sourcewav + #Sourcejpg == #Targetwav + #Targetjpg
                      straTargetSongListOfType = Directory.GetFiles(strTargetDirAlbumwav, "*.wav");
                      straTargetSongListOfjpg = Directory.GetFiles(strTargetDirAlbumwav, "*.jpg");
-                     bMovedNumberOfFilesMatchwav = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfwav) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
+                     bCopiedOrMovedNumberOfFilesMatchwav = ((straTargetSongListOfType.Length == olAlbum.iAlbumNumberOfwav) && (straTargetSongListOfjpg.Length == olAlbum.iAlbumNumberOfjpg));
                   }
 
-                  // If all process-file-types are selected, and all files have been moved / copied, then
+                  // If all process-file-types are selected, and all files have been moved-or-copied, then
                   // do the file-and-directory clean-up. We don't need to test for the three different
-                  // process-file-types -- the bool bMovedNumberOfFilesMatch flags will tell us what we
+                  // process-file-types -- the bool bCopiedOrMovedNumberOfFilesMatch flags will tell us what we
                   // need to know, since they all start as false and only become true if their
-                  // corresponding file-type is successfully processed. If they're all true and all
-                  // files have been moved / copied, then:
+                  // corresponding file-type is successfully processed.
+                  // * If they're all true AND all
+                  // * All files have been copied-or-moved AND
+                  // * rbCopyOrMoveMove.Checked == true, then:
                   // * Delete original .jpg files
                   // * Delete SourceAlbumDir
-                  if (bMovedNumberOfFilesMatchFLAC && bMovedNumberOfFilesMatchmp3 && bMovedNumberOfFilesMatchwav) {
+                  if (bCopiedOrMovedNumberOfFilesMatchFLAC && bCopiedOrMovedNumberOfFilesMatchmp3 && bCopiedOrMovedNumberOfFilesMatchwav && rbCopyOrMoveMove.Checked == true) {
                      straTargetSongListOfjpg = Directory.GetFiles(olAlbum.strAlbumDirectory, "*.jpg");
                      foreach (string strFilename in straTargetSongListOfjpg) {
                         try {
@@ -454,14 +502,18 @@ namespace Ripped_Music_Splitter {
                         finally { }
                      }
                   }
-                  // All of the files have been moved out of the Album directory, so delete it.
-                  try {
-                     Directory.Delete(olAlbum.strAlbumDirectory);
+
+                  if (bCopiedOrMovedNumberOfFilesMatchFLAC && bCopiedOrMovedNumberOfFilesMatchmp3 && bCopiedOrMovedNumberOfFilesMatchwav && rbCopyOrMoveMove.Checked == true) {
+                     // All of the files have been moved out of the Album directory, so delete it.
+                     try {
+                        Directory.Delete(olAlbum.strAlbumDirectory);
+                        rtbMessagesToUser.AppendText("* Successfully deleted Album directory : " + olAlbum.strAlbumDirectory + Environment.NewLine, Color.Blue, fFontReg, cbLogOperationsToFile.Checked, strLogFilename);
+                     }
+                     catch (Exception eException) {
+                        rtbMessagesToUser.AppendText("*** Error deleting Album directory " + olAlbum.strAlbumDirectory + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
+                     }
+                     finally { }
                   }
-                  catch (Exception eException) {
-                     rtbMessagesToUser.AppendText("*** Error deleting Album directory " + olAlbum.strAlbumDirectory + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
-                  }
-                  finally { }
                }
             }
 
@@ -474,14 +526,18 @@ namespace Ripped_Music_Splitter {
             else {
                rtbMessagesToUser.Visible = true;
             }
-            // All of the Albums have been moved from the Group, so delete the Group.
-            try {
-               Directory.Delete(oMusicGroupAndAlbums.strGroupDirectory);
+
+            if (bCopiedOrMovedNumberOfFilesMatchFLAC && bCopiedOrMovedNumberOfFilesMatchmp3 && bCopiedOrMovedNumberOfFilesMatchwav && rbCopyOrMoveMove.Checked == true) {
+               // All of the Albums have been moved from the Group, so delete the Group.
+               try {
+                  Directory.Delete(oMusicGroupAndAlbums.strGroupDirectory);
+                  rtbMessagesToUser.AppendText("* Successfully deleted Group directory : " + oMusicGroupAndAlbums.strGroupDirectory + Environment.NewLine, Color.Blue, fFontReg, cbLogOperationsToFile.Checked, strLogFilename);
+               }
+               catch (Exception eException) {
+                  rtbMessagesToUser.AppendText("*** Error deleting Group directory " + oMusicGroupAndAlbums.strGroupDirectory + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
+               }
+               finally { }
             }
-            catch (Exception eException) {
-               rtbMessagesToUser.AppendText("*** Error deleting Group directory " + oMusicGroupAndAlbums.strGroupDirectory + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
-            }
-            finally { }
          }
       }
 
