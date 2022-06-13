@@ -14,7 +14,8 @@ using System.Collections.Specialized;
 namespace Ripped_Music_Splitter {
 
    public partial class frmRippedMusicSplitter : Form {
-      private static string strBaseSourceDir = @"D:\zSplitterTestSource";
+      // private static string strBaseSourceDir = @"D:\zSplitterTestSource";
+      private static string strBaseSourceDir = @"C:\zSource";
       private static string strBaseTargetDir = @"D:\zSplitterTestTarget";
       private static List<MusicGroupAndAlbums> lMusicGroupAndAlbums;
       private static string strLogFilename = "Ripped Music Splitter [Log].txt";
@@ -247,23 +248,34 @@ namespace Ripped_Music_Splitter {
          rtbMessagesToUser.Text = "";
          rtbMessagesToUser.Visible = false;
          string strWorkString = "";
+         string strCountString = "";
          Font fFontReg = new Font(rtbAnalysisBaseSourceDir.Font, FontStyle.Regular);
          Font fFontBold = new Font(rtbAnalysisBaseSourceDir.Font, FontStyle.Bold);
          foreach (MusicGroupAndAlbums oMusicGroupAndAlbums in lMusicGroupAndAlbums) {
             rtbAnalysisBaseSourceDir.AppendText(oMusicGroupAndAlbums.strGroupName + Environment.NewLine, Color.DarkSlateBlue, fFontBold);
             foreach (Album olAlbum in oMusicGroupAndAlbums.lAlbums) {
                rtbAnalysisBaseSourceDir.AppendText("      ", Color.Black, fFontReg);
-               strWorkString = String.Format("{0} [{1} | {2} | {3}]", olAlbum.strAlbumName, olAlbum.iAlbumNumberOfFLAC, olAlbum.iAlbumNumberOfmp3, olAlbum.iAlbumNumberOfwav);
+                    // strWorkString = String.Format("{0} [{1} | {2} | {3}]", olAlbum.strAlbumName, olAlbum.iAlbumNumberOfFLAC, olAlbum.iAlbumNumberOfmp3, olAlbum.iAlbumNumberOfwav);
+               strCountString = String.Format("[{0:00} | {1:00} | {2:00}]", olAlbum.iAlbumNumberOfFLAC, olAlbum.iAlbumNumberOfmp3, olAlbum.iAlbumNumberOfwav);
+               strWorkString = String.Format("{0} -- {1}", strCountString, olAlbum.strAlbumName);
                if (olAlbum.bIsAlbumValid) {
                   rtbAnalysisBaseSourceDir.AppendText(strWorkString, Color.Black, fFontReg);
                }
                else {
-                  rtbAnalysisBaseSourceDir.AppendText("BAD-" + strWorkString, Color.OrangeRed, fFontReg);
+                  rtbAnalysisBaseSourceDir.AppendText(strWorkString + " - *Bad*", Color.OrangeRed, fFontReg);
                   if (rtbMessagesToUser.Text.Length == 0) {
                      rtbMessagesToUser.AppendText("Errors encountered during analysis:" + Environment.NewLine, Color.Black, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
                   }
-                  rtbMessagesToUser.AppendText("* Cannot process album '" + strWorkString, Color.OrangeRed, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
-               }
+                  // rtbMessagesToUser.AppendText("* Cannot process album '" + strWorkString + "'", Color.OrangeRed, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
+                  rtbMessagesToUser.AppendText("\r\n* Cannot process band's album: '" + oMusicGroupAndAlbums.strGroupName + "'; '" + olAlbum.strAlbumName + "' due to song miscount " + strCountString, Color.OrangeRed, fFontBold, cbLogOperationsToFile.Checked, strLogFilename);
+                  String strMessageString = "* Cannot process band's album: '" + oMusicGroupAndAlbums.strGroupName + "'; '" + olAlbum.strAlbumName + "' due to song miscount " + strCountString;
+                  //MessageBox.Show(strMessageString);
+                  FormDavesMessageBoxForm fDMBFDavesMessageBox = new FormDavesMessageBoxForm();
+                  fDMBFDavesMessageBox.StartPosition = FormStartPosition.CenterParent;
+                  fDMBFDavesMessageBox.rtbMessage.Text = strMessageString;
+                  fDMBFDavesMessageBox.Text = "Album Song Count Mismatch";
+                  fDMBFDavesMessageBox.ShowDialog();
+                  }
                rtbAnalysisBaseSourceDir.AppendText(Environment.NewLine, Color.Black, fFontReg);
             }
          }

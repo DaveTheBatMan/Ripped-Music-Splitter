@@ -117,27 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="rtbRippedMusicSplitterIntroText.Text" xml:space="preserve">
-    <value>This program is designed to take ripped music (of multiple possible file types) and collate the different file types into separate folders. The music must be stored in a series of directories (and their nested sub-directories) organized as:
-   Directory = Music Group / Genre
-      Subdirectory #n = Album title #n
-
-Currently:
-* The program supports file types of {FLAC, mp3, wav}, and you can individually select to process any/all of those file types; the output album directories will have {[FLAC], [320kbps mp3], [wav]} appended to the album name.
-* 'Move' is only allowed when all three file types are selected; deselecting any of the file types will force 'Copy'.
-* Only operations from-and-to the same drive are supported.
-* It will first verify that the same number of each file type exists before processing, copy-or-move those files to the target location's directory (along with copying the appropriate jpg album cover files), and then verify that the (moved) target # of files are the same as the original source # of files.
-* If all files have been copied-or-moved *and* all file types were selected, then the source Album directory is deleted; when all Albums have been deleted, the Group directory is deleted.
-* You must "Analyze" the Source directory before you can "Go", and any changes you make to the settings require a new "Analyze".
-
-June 12, 2022:
-* Changed message format output from {[song count FLAC, song count mp3, song count wav] GroupName AlbumName} to {GroupName AlbumName [song count FLAC, song count mp3, song count wav]}
-* Added self-centering MessageBox to display each unprocessable Band/Album due to song miscount</value>
-  </data>
-  <metadata name="folderBrowserDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
-  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>25</value>
-  </metadata>
 </root>
